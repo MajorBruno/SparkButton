@@ -25,6 +25,7 @@ import com.varunest.sparkbutton.heplers.Utils;
 
 /**
  * @author varun 7th July 2016
+ * @author mbruno 3rd Aug 2016
  */
 public class SparkButton extends FrameLayout implements View.OnClickListener {
     private static final DecelerateInterpolator DECCELERATE_INTERPOLATOR = new DecelerateInterpolator();
@@ -81,6 +82,14 @@ public class SparkButton extends FrameLayout implements View.OnClickListener {
     public void setColors(int startColor, int endColor) {
         this.secondaryColor = startColor;
         this.primaryColor = endColor;
+    }
+
+    public void setActiveImageId(int imageId) {
+        imageResourceIdActive = imageId;
+    }
+
+    public void setInactiveImageId(int imageId) {
+        imageResourceIdInactive = imageId;
     }
 
     public void setAnimationSpeed(float animationSpeed) {
