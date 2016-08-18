@@ -13,6 +13,7 @@ import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.AccelerateDecelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
 import android.view.animation.OvershootInterpolator;
@@ -25,26 +26,30 @@ import com.varunest.sparkbutton.heplers.Utils;
 
 /**
  * @author varun 7th July 2016
- * @author mbruno 3rd Aug 2016
+ * @author mbruno 18th Aug 2016
  */
 public class SparkButton extends FrameLayout implements View.OnClickListener {
     private static final DecelerateInterpolator DECCELERATE_INTERPOLATOR = new DecelerateInterpolator();
     private static final AccelerateDecelerateInterpolator ACCELERATE_DECELERATE_INTERPOLATOR = new AccelerateDecelerateInterpolator();
     private static final OvershootInterpolator OVERSHOOT_INTERPOLATOR = new OvershootInterpolator(4);
-
     private static final int INVALID_RESOURCE_ID = -1;
-    private static final float DOTVIEW_SIZE_FACTOR = 3;
-    private static final float DOTS_SIZE_FACTOR = .08f;
-    private static final float CIRCLEVIEW_SIZE_FACTOR = 1.4f;
+
+    private static final float INITIAL_CIRCLE_FACTOR = 1.4f;
+    public static final float INITIAL_DOT_FACTOR = .08f;
+    public static final float INITIAL_DOT_VIEW_FACTOR = 3f;
+
+    private float circleSizeFactor = INITIAL_CIRCLE_FACTOR;
+    private float dotsSizeFactor = INITIAL_DOT_FACTOR;
+    private float dotViewSizeFactor = INITIAL_DOT_VIEW_FACTOR;
 
     int imageResourceIdActive = INVALID_RESOURCE_ID;
     int imageResourceIdInactive = INVALID_RESOURCE_ID;
-
     int imageSize;
     int dotsSize;
     int circleSize;
     int secondaryColor;
     int primaryColor;
+
     DotsView dotsView;
     CircleView circleView;
     ImageView imageView;
@@ -79,29 +84,9 @@ public class SparkButton extends FrameLayout implements View.OnClickListener {
         init();
     }
 
-    public void setColors(int startColor, int endColor) {
-        this.secondaryColor = startColor;
-        this.primaryColor = endColor;
-
-        circleView.setColors(startColor, endColor);
-        dotsView.setColors(startColor, endColor);
-    }
-
-    public void setActiveImageId(int imageId) {
-        imageResourceIdActive = imageId;
-    }
-
-    public void setInactiveImageId(int imageId) {
-        imageResourceIdInactive = imageId;
-    }
-
-    public void setAnimationSpeed(float animationSpeed) {
-        this.animationSpeed = animationSpeed;
-    }
-
     void init() {
-        circleSize = (int) (imageSize * CIRCLEVIEW_SIZE_FACTOR);
-        dotsSize = (int) (imageSize * DOTVIEW_SIZE_FACTOR);
+        circleSize = (int) (imageSize * circleSizeFactor);
+        dotsSize = (int) (imageSize * dotViewSizeFactor);
 
         LayoutInflater.from(getContext()).inflate(R.layout.layout_spark_button, this, true);
         circleView = (CircleView) findViewById(R.id.vCircle);
@@ -113,7 +98,7 @@ public class SparkButton extends FrameLayout implements View.OnClickListener {
         dotsView.getLayoutParams().width = dotsSize;
         dotsView.getLayoutParams().height = dotsSize;
         dotsView.setColors(secondaryColor, primaryColor);
-        dotsView.setMaxDotSize((int) (imageSize * DOTS_SIZE_FACTOR));
+        dotsView.setMaxDotSize((int) (imageSize * dotsSizeFactor));
 
         imageView = (ImageView) findViewById(R.id.ivImage);
 
@@ -196,6 +181,98 @@ public class SparkButton extends FrameLayout implements View.OnClickListener {
     public void setChecked(boolean flag) {
         isChecked = flag;
         imageView.setImageResource(isChecked ? imageResourceIdActive : imageResourceIdInactive);
+    }
+
+    /**
+     * Sets the primary and secondary colors used in the
+     * button's animation. These should be the resolved color
+     * resources.
+     *
+     * @param primaryColor primary color resource
+     * @param secondaryColor secondary color resource
+     */
+    public void setColors(int primaryColor, int secondaryColor) {
+        this.secondaryColor = primaryColor;
+        this.primaryColor = secondaryColor;
+
+        circleView.setColors(primaryColor, secondaryColor);
+        dotsView.setColors(primaryColor, secondaryColor);
+    }
+
+    /**
+     * Sets the drawable that should be used for the button's
+     * active state. The resource ID of the image should be used.
+     *
+     * @param imageId resource ID of the image
+     */
+    public void setActiveImageId(int imageId) {
+        imageResourceIdActive = imageId;
+    }
+
+    /**
+     * Sets the drawable that should be used for the button's
+     * inactive state. The resource ID of the image should be used.
+     *
+     * @param imageId resource ID of the image
+     */
+    public void setInactiveImageId(int imageId) {
+        imageResourceIdInactive = imageId;
+    }
+
+    /**
+     * Sets the speed at which the animation should play.
+     *
+     * @param animationSpeed speed of animation
+     */
+    public void setAnimationSpeed(float animationSpeed) {
+        this.animationSpeed = animationSpeed;
+    }
+
+    /**
+     * Scales the size of the circle animation by the given factor,
+     * with 1.0 being the original scale.
+     *
+     * @param scale scale factor to apply
+     */
+    public void setCircleScale(float scale) {
+        scale = Math.max(scale, 0);
+        circleSizeFactor = scale * INITIAL_CIRCLE_FACTOR;
+        circleSize = (int) (imageSize * circleSizeFactor);
+
+        final ViewGroup.LayoutParams params = circleView.getLayoutParams();
+        params.height = circleSize;
+        params.width = circleSize;
+        circleView.setLayoutParams(params);
+    }
+
+    /**
+     * Scales the size of the individual dot effects by the given factor,
+     * with 1.0 being the original scale.
+     *
+     * @param scale scale factor to apply
+     */
+    public void setDotsScale(float scale) {
+        scale = Math.max(scale, 0);
+        dotsSizeFactor = scale * INITIAL_DOT_FACTOR;
+
+        dotsView.setMaxDotSize((int) (imageSize * dotsSizeFactor));
+    }
+
+    /**
+     * Scales the size of the dot container view by the given factor,
+     * with 1.0 being the original scale.
+     *
+     * @param scale scale factor to apply
+     */
+    public void setDotContainerScale(float scale) {
+        scale = Math.max(scale, 0);
+        dotViewSizeFactor = scale * INITIAL_DOT_VIEW_FACTOR;
+        dotsSize = (int) (imageSize * dotViewSizeFactor);
+
+        final ViewGroup.LayoutParams params = dotsView.getLayoutParams();
+        params.width = dotsSize;
+        params.height = dotsSize;
+        dotsView.setLayoutParams(params);
     }
 
     public void setEventListener(SparkEventListener listener) {
